@@ -1,0 +1,250 @@
+<div class="d-flex h-100">
+  <mat-drawer-container class="drawer-content" autosize>
+    <!-- Contenido principal de la izquierda -->
+    <div class="content-left">
+      <!-- Header y botón de "Agregar" del listado de Tipos de Equipo -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h1>Listado de Tipos de Equipo</h1>
+        <button mat-button class="actionButton" type="button" (click)="setEquipmentTypes()"
+          matTooltip="Agregar Nuevo Tipo de Equipo">
+          <mat-icon class="material-icons-outline icon">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Tipos de Equipo -->
+      <div class="background-table my-1">
+        <p-table [columns]="colsEquipmentTypes" [value]="equipmentTypesDataSource"
+          selectionMode="single" styleClass="p-datatable-striped" responsiveLayout="scroll"
+          [(selection)]="selected" selectionMode="single">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRow}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- ngClass: Para alinear, ver el TS y CSS -->
+                {{ rowData[col.field] }}
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton"
+                    (click)="getBehaviours(rowData, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Ver Funcionamientos">
+                      settings_power
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton"
+                    (click)="setEquipmentTypes(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Header y botón de "Agregar" del listado de Funcionamientos -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="middle gap-1">Estados de Funcionamiento del Equipo
+          <span class="especification">{{equimentTypesNameSelected}}</span>
+        </h2>
+        <button mat-button class="actionButton" type="button" [disabled]="!searchBehaviours"
+          matTooltip="Agregar Nuevo Estado de Funcionamiento" (click)="setBehaviour()">
+          <mat-icon class="icon" [ngClass]="{ disabled: !searchBehaviours }">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Funcionamientos -->
+      <div class="background-table table-two my-1">
+        <p-table class="table1" [columns]="colsBehaviours" selectionMode="single"
+          [value]="behavioursDataSource" [(selection)]="selectedTableTwo"
+          styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr *ngIf="!searchBehaviours">
+              <td class="align-center" colspan="4">
+                Seleccione un Tipo de Equipo
+              </td>
+            </tr>
+            <tr *ngIf="!dataRowHasData">
+              <td class="align-center" colspan="4">
+                No hay funcionamientos asociados al Tipo de Equipo
+              </td>
+            </tr>
+            <tr *ngIf="searchBehaviours && dataRowHasData" class="under-sticky"
+              [ngClass]="{'p-highlight' : rowData === selectedRowTableTwo}">
+              <!-- ngClass: Para alinear, ver el TS y CSS -->
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- Contenido de la tabla. Si es campo regionName se adentra en el array de ese key, sino muestra el valor del key-->
+                {{
+                col.field !== "behaviourNormalState"
+                ? rowData[col.field]
+                : null
+                }}
+                <div *ngIf="
+                    col.field === 'behaviourNormalState' &&
+                    rowData[col.field] === true
+                  ">
+                  <mat-icon class="material-icons-outlined icon">done</mat-icon>
+                </div>
+                <div *ngIf="
+                    col.field === 'behaviourNormalState' &&
+                    rowData[col.field] === false
+                  ">
+                  <mat-icon class="material-icons-outlined icon">close</mat-icon>
+                </div>
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton"
+                    (click)="setReadOnlyMode(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Ver">visibility
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="setBehaviour(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Contenido del panel lateral -->
+    <mat-drawer #drawer class="drawer-sidecontent" mode="side" position="end">
+      <div class="content-right d-flex flex-column">
+        <!-- Panel de Tipos de Equipo -->
+        <div *ngIf="equipmentTypePanel" class="box-shadow box-margin">
+          <h2 class="mx-0">
+            {{ !editMode ? "Nuevo Tipo de Equipo" : "Editar Tipo de Equipo" }}
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label for="code">Código</label>
+                  <input type="number" class="form-control form-control-sm inputCustom"
+                    [formControl]="equipmentTypeCode && code" placeholder="5" />
+                </div>
+                <div class="col-8">
+                  <label for="name">Nombre</label>
+                  <input type="text" class="form-control form-control-sm inputCustom"
+                    [formControl]="equipmentTypeName" />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <label for="description">Descripción</label>
+                  <input type="text" class="form-control form-control-sm inputCustom"
+                    [formControl]="equipmentTypeDescription" />
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="addEquipmentType()">
+                <mat-icon class="material-icons-outline icon">{{
+                  !editMode ? "add" : "done"
+                  }}</mat-icon>
+                {{ !editMode ? "Agregar" : "Aceptar" }}
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de Funcionamientos -->
+        <div *ngIf="behaviourPanel" class="box-shadow box-margin">
+          <h2 class="mx-0 middle gap-1">
+            {{
+            !editMode
+            ? "Nuevo Estado de Func. del Equipo"
+            : readOnlyMode
+            ? "Ver Estado de Func."
+            : "Editar Estado de Func."
+            }}
+            <span *ngIf="!editMode" class="especification">{{equimentTypesNameSelected}}</span>
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-3">
+                  <label for="code">Código</label>
+                  <input type="number" class="form-control form-control-sm inputCustom"
+                    placeholder="5" [formControl]="behaviourCode "
+                    [attr.disabled]="readOnlyMode ? true : false" />
+                </div>
+
+                <div class="col-2 d-flex flex-column">
+                  <label for="code" style="margin-bottom: 3px; margin-top: 1px">Normal</label>
+                  <mat-checkbox style="padding-left: 12px" [formControl]="behaviourNormalState"
+                    [disabled]="readOnlyMode ? true : false">
+                  </mat-checkbox>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label for="name">Funcionamiento</label>
+                  <input type="text" class="form-control form-control-sm inputCustom"
+                    [formControl]="behaviourName" [attr.disabled]="readOnlyMode ? true : null" />
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button *ngIf="!readOnlyMode" mat-button class="actionButton" type="button"
+                (click)="addBehaviour()">
+                <mat-icon class="material-icons-outline icon">{{
+                  !editMode ? "add" : "done"
+                  }}</mat-icon>
+                {{ !editMode ? "Agregar" : "Aceptar" }}
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                {{ readOnlyMode ? "Cerrar" : "Cancelar" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-drawer>
+  </mat-drawer-container>
+</div>

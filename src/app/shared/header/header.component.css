@@ -1,0 +1,90 @@
+.navbar {
+  height: 44px;
+  background-color: #142052;
+  box-shadow: 0 2px 5px 1px rgb(64 60 67 / 16%);
+  padding: 0 14px;
+  z-index: 2;
+  display: flex;
+  align-content: space-between;
+}
+
+.example-spacer {
+  flex: 1 1 auto;
+}
+
+.icon-white {
+  color: #e7e7e7;
+  font-size: 20px !important;
+}
+
+::ng-deep .crossroadMenu {
+  background: #f2f2f2 !important;
+  max-width: 190px !important;
+  min-width: 190px !important;
+}
+
+.mat-menu-item {
+  height: 25px;
+  background-color: #f2f2f2;
+  display: flex;
+  align-items: center;
+  font-family: 'Open Sans';
+  font-size: 12px;
+  font-weight: 600;
+  color: #080d21;
+  outline: none;
+}
+
+.mat-menu-item:hover {
+  background-color:#d7d7fd;
+}
+
+.username, .userRol {
+  font-family: 'Open Sans';
+  margin: 0;
+  cursor: default;
+}
+
+.username {
+  line-height: 1.5;
+  font-size: 13px;
+  font-weight: bold;
+  color: #080d21;
+}
+
+.userRol {
+  color: gray;
+}
+
+.icon-white:hover,
+.adminButton:hover .icon-white {
+  color: white;
+  font-size: 23px !important;
+}
+
+.text {
+  color: #e7e7e7;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+}
+
+.adminButton:hover .text {
+  color: white;
+  font-size: 13px;
+}
+
+.adminButton {
+  padding: 0;
+}
+
+.adminMenuText {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+}
+
+.adminIcon {
+  font-size: 20px !important;
+}
+.searcherContainer{
+
+}

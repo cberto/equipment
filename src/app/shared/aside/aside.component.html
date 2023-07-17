@@ -1,0 +1,87 @@
+<div class="sidenav-custom" [ngClass]="{'open-sidenav': sidenavState }">
+  <mat-nav-list class="sidenav-content">
+    <mat-list-item (click)="openSidenav()"
+      [matTooltip]="!sidenavState? 'Expandir menú' : 'Contraer menú' ">
+      <mat-icon mat-list-icon class="icon">menu</mat-icon>
+    </mat-list-item>
+    <!-- <mat-list-item routerLink="/">
+      <mat-icon mat-list-icon class="material-icons-outlined icon">home</mat-icon>
+      <span class="text">Home</span>
+    </mat-list-item> -->
+
+    <mat-list-item routerLink='/equipment-types' routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Tipos de Equipo">
+        settings_remote
+      </mat-icon>
+      <span class="text">Tipos de Equipo</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/contracts" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Contratos">
+        description</mat-icon>
+      <span class="text">Contratos</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/regions" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Regiones y Comunas">
+        travel_explore
+      </mat-icon>
+      <span class="text">Regiones / Comunas</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/branch" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Sucursales">
+        maps_home_work</mat-icon>
+      <span class="text">Sucursales</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/tasksAndAttention" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Tareas y Atenciones">
+        announcement
+      </mat-icon>
+      <span class="text">Tareas y Atenciones</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/groups_mobiles" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Grupos y Móviles">
+        airport_shuttle
+      </mat-icon>
+      <span class="text">Grupos y Móviles</span>
+    </mat-list-item>
+    <mat-list-item routerLink="/crossroads" routerLinkActive="active-list-item">
+      <mat-icon mat-list-icon class="material-icons-outlined icon" matTooltip="Listado de Cruces">
+        place</mat-icon>
+      <span class="text">Cruces</span>
+    </mat-list-item>
+
+  </mat-nav-list>
+</div>
+
+<!-- <mat-sidenav-container autosize class="shadow-navbar">
+  <mat-sidenav #sidenav mode="side" opened="true" class="sidenav">
+    <mat-nav-list class="listaUno">
+      <mat-list-item (click)="expandMenu()">
+        <mat-icon mat-list-icon class="icon">menu</mat-icon>
+      </mat-list-item>
+      <mat-list-item routerLink="/">
+        <mat-icon mat-list-icon class="material-icons-outlined icon">home</mat-icon>
+        <span *ngIf="isExpanded" class="text">Home</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/crossroads">
+        <mat-icon mat-list-icon class="material-icons-outlined icon">place</mat-icon>
+        <span *ngIf="isExpanded" class="text">Cruces</span>
+      </mat-list-item>
+      <mat-list-item routerLink='/equipment-types'>
+        <mat-icon mat-list-icon class="material-icons-outlined icon">settings_remote</mat-icon>
+        <span *ngIf="isExpanded" class="text">Tipos de Equipo</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/contracts">
+        <mat-icon mat-list-icon class="material-icons-outlined icon">description</mat-icon>
+        <span *ngIf="isExpanded" class="text">Contratos</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/regions">
+        <mat-icon mat-list-icon class="material-icons-outlined icon">public</mat-icon>
+        <span *ngIf="isExpanded" class="text">Regiones</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/communes">
+        <mat-icon mat-list-icon class="material-icons-outlined icon">travel_explore</mat-icon>
+        <span *ngIf="isExpanded" class="text">Comunas</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </mat-sidenav>
+</mat-sidenav-container> -->

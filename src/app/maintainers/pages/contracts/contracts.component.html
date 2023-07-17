@@ -1,0 +1,275 @@
+<div class="d-flex h-100">
+  <mat-drawer-container class="drawer-content" autosize>
+    <!-- Contenido de Contratos -->
+    <div class="content-left">
+      <!-- Header y botón de "Agregar" del listado de Contratos -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h1>Listado de Contratos</h1>
+
+        <button mat-button class="actionButton" type="button" (click)="setContract()"
+          matTooltip="Agregar nuevo Contrato">
+          <mat-icon class="material-icons-outline icon">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Contratos -->
+      <div class="background-table my-1">
+        <p-table [columns]="colsContracts" [value]="contractsDataSource" styleClass="p-datatable-striped"
+          responsiveLayout="scroll" [(selection)]="selected" selectionMode="single">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+
+              <th *ngFor="let col of columns" class="ng-star-inserted" [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRow}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                {{
+                col.field === 'contractStart' || col.field === 'contractEnd'
+                ? (rowData[col.field] | dateConversion)
+                : rowData[col.field]
+                }}
+                <div *ngIf="col.field === 'actions'" class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton" (click)="
+                   getCrossroadsByIds(rowData)
+                    ">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Ver Cruces Asociados">
+                      place
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="setContract(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">
+                      edit
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Contenido de cruces -->
+    <div class="content-left">
+      <!-- Header y botón de "Agregar" del listado de Equipos del Cruce -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="middle gap-1">Cruces asociados<span *ngIf="searchCrossroads"
+            class="especification">{{contractSelected}}</span></h2>
+        <div class="d-flex align-items-center gap-1">
+          <button mat-button class="actionButton" type="button" matTooltip="Agregar Cruces asociados"
+            (click)="setAssociatedCrosses()" [disabled]="!searchCrossroads">
+            <mat-icon class="icon" [ngClass]="{ disabled: !searchCrossroads }">add</mat-icon>
+            Agregar
+          </button>
+        </div>
+      </div>
+      <!-- Tabla de Cruce -->
+      <div class="background-table table-two my-1">
+        <p-table class="table1" [columns]="colsCrossroads" [value]="crossroadDataSource"
+          styleClass="p-datatable-striped" responsiveLayout="scroll" [(selection)]="selectedTableTwo"
+          selectionMode="single">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [ngClass]="{ 'text-start': col.align === 'align-default' }"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr *ngIf="!searchCrossroads">
+              <td class="align-center" colspan="6">Seleccione un Contrato</td>
+            </tr>
+            <tr *ngIf="!dataRowHasData">
+              <td class="align-center" colspan="6">No hay Cruce asociados al Contrato.</td>
+            </tr>
+            <tr *ngIf="searchCrossroads && dataRowHasData" class="under-sticky"
+              [ngClass]="{'p-highlight' : rowData === selectedRowTableTwo}">
+              <!-- ngClass: Para alinear, ver el TS y CSS -->
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                {{ col.field === 'relatedEquipmentTypeId' ? rowData[col.field][0].relatedEquipmentTypeId :
+                rowData[col.field] }}
+
+                <div *ngIf="col.field === 'actions'" class="d-flex align-items-center justify-content-center">
+                  <!-- <button mat-icon-button class="iconButton" (click)="setCrossroad(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button> -->
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Contenido del panel lateral -->
+    <mat-drawer #drawer class="drawer-sidecontent" mode="side" position="end">
+      <div class="content-right d-flex flex-column">
+        <!-- Panel de Contrato -->
+        <div *ngIf="contractPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">
+            {{ !editMode ? 'Nuevo Contrato' : 'Editar Contrato' }}
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label for="code">Código</label>
+                  <input type="number" min="1" class="form-control form-control-sm inputCustom"
+                    [formControl]="contractCode && code" placeholder="2" />
+                </div>
+                <div class="col-8">
+                  <label for="name">Nombre</label>
+                  <input type="text" class="form-control form-control-sm inputCustom" [formControl]="contractName" />
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="start">Inicio</label>
+                  <input type="date" class="form-control form-control-sm inputCustom" [formControl]="contractStart" />
+                </div>
+                <div class="col-6">
+                  <label for="end">Fin</label>
+                  <input type="date" class="form-control form-control-sm inputCustom" [formControl]="contractEnd" />
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="addContract()">
+                <mat-icon class="material-icons-outline icon">
+                  {{ !editMode ? 'add' : 'done' }}
+                </mat-icon>
+                {{ !editMode ? 'Agregar' : 'Aceptar' }}
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="associatedCrossesPanel" class="box-shadow box-margin">
+          <h2 class="mx-0 middle gap-1">Asociar Cruces a Contrato<span *ngIf="searchCrossroads"
+              class="especification">{{contractSelected}}</span></h2>
+
+          <form class="w-100">
+            <div class="row g-2">
+              <div class="col-2">
+                <label for="crossroadCodeFilter" class="form-label">Código</label>
+                <input matInput type="number" class="form-control form-control-sm inputCustom"
+                  autocomplete="disabled" />
+              </div>
+              <div class="col-10">
+                <label for="crossroadStreetFilter" class="form-label">Calle</label>
+                <input type="text" class="form-control form-control-sm inputCustom" id="crossroadStreetFilter"
+                  autocomplete="off" />
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="crossroadCommuneFilter" class="form-label">Comuna</label>
+                <ng-multiselect-dropdown name="crossroadCommuneFilter" [placeholder]="'Seleccione...'"
+                  [settings]="selectWithoutFilter" [data]="communeDataSource" [(ngModel)]="communeSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+          </form>
+          <div class="d-flex align-items-center justify-content-end mt-2 gap-1">
+            <button mat-button class="actionButton me-2">
+              <mat-icon class="icon">search</mat-icon>
+              Buscar
+            </button>
+            <button mat-button class="actionButton">
+              <mat-icon class="icon">refresh</mat-icon>
+              Limpiar
+            </button>
+          </div>
+
+          <hr class="my-1" />
+
+          <h2>Resultados de búsqueda</h2>
+          <div class="background-table my-1">
+            <p-table [columns]="colsCrossroadSearch" [value]="crossroadSearchDataSource"
+              styleClass="p-datatable-striped" responsiveLayout="scroll">
+              <ng-template pTemplate="header" let-columns>
+                <tr class="ng-star-inserted sticky-header">
+                  <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+                  <th class="px-2">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  </th>
+                  <th *ngFor="let col of columns" class="ng-star-inserted"
+                    [ngClass]="{ 'text-start': col.align === 'align-default' }"
+                    [pSortableColumn]="col.sort ? col.field : null">
+                    {{ col.header }}
+                    <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                    <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-rowData let-columns="columns">
+                <tr *ngIf="!searchCrossroads">
+                  <td class="align-center" colspan="6">Seleccione un Contrato</td>
+                </tr>
+                <tr *ngIf="!dataRowHasData">
+                  <td class="align-center" colspan="6">No hay Cruce asociados al Contrato.</td>
+                </tr>
+                <tr *ngIf="searchCrossroads && dataRowHasData" class="under-sticky">
+                  <td class="px-2">
+                    <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                  </td>
+                  <td *ngFor="let col of columns" [ngClass]="col.align">
+                    {{ col.field === 'relatedEquipmentTypeId' ? rowData[col.field][0].relatedEquipmentTypeId :
+                    rowData[col.field] }}
+
+                    <div *ngIf="col.field === 'actions'" class="d-flex align-items-center justify-content-center">
+                      <button mat-icon-button class="iconButton">
+                        <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                        </mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
+          <hr class="mt-2 mb-1" />
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-end mb-2">
+            <button mat-button class="actionButton" type="button">
+              <mat-icon class="material-icons-outline icon">add</mat-icon>
+              Agregar
+            </button>
+            <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+              <mat-icon class="material-icons-outline icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </mat-drawer>
+  </mat-drawer-container>
+</div>

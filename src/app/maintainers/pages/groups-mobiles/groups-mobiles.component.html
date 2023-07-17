@@ -1,0 +1,296 @@
+<div class="d-flex h-100">
+  <mat-drawer-container class="drawer-content" autosize>
+    <!-- Contenido principal de la izquierda -->
+    <div class="content-left">
+      <!-- Header y botón de "Agregar" del listado de Grupos y Móviles -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h1>Listado de Grupos y Móviles</h1>
+        <div class="d-flex gap-1">
+          <button mat-button class="actionButton" type="button" (click)="setGroupsMobiles()"
+            matTooltip="Agregar Móvil al Grupo">
+            <mat-icon class="material-icons-outline icon">add</mat-icon>
+            Agregar
+          </button>
+          <button *ngIf="!openedFiltersMenu; else filtersMenu" class="actionButton" mat-button
+            (click)="handleFiltersMenu()" matTooltip="Filtrar Grupos y Móviles">
+            <mat-icon class="icon">filter_alt</mat-icon>
+            Filtrar
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <ng-template #filtersMenu>
+        <div class="d-flex flex-column filters-menu">
+          <form class="w-100">
+            <div class="row g-2">
+              <div class="col-4">
+                <label for="crossroadStreetFilter" class="form-label">Fecha</label>
+                <input type="date" class="form-control form-control-sm inputCustom"
+                  id="crossroadStreetFilter" autocomplete="off" />
+              </div>
+              <div class="col-5">
+                <label for="crossroadCommuneFilter" class="form-label">Grupo</label>
+                <ng-multiselect-dropdown name="groupsMobilesFilter" [placeholder]="'Seleccione...'"
+                  [settings]="selectGroups" [data]="groupsMobilesDataSource"
+                  [(ngModel)]="groupFilterSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+          </form>
+          <div class="d-flex align-items-center justify-content-end mt-2 gap-1">
+            <button mat-button class="actionButton me-2">
+              <mat-icon class="icon">search</mat-icon>
+              Buscar
+            </button>
+            <button mat-button class="actionButton">
+              <mat-icon class="icon">refresh</mat-icon>
+              Limpiar
+            </button>
+            <button mat-button class="actionButton" (click)="handleFiltersMenu()">
+              <mat-icon class="icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Tabla de Grupos y Móviles -->
+      <div class="background-table my-1">
+        <p-table [columns]="colsGroupsMobiles" [(selection)]="selected" selectionMode="single"
+          [value]="groupsMobilesDataSource" styleClass="p-datatable-striped"
+          responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRow}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- ngClass: Para alinear, ver el TS y CSS -->
+                {{
+                col.field === 'groupDate'
+                ? (rowData[col.field] | dateConversion)
+                : rowData[col.field]
+                }}
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton"
+                    (click)="setGroupsMobiles(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="setDuplicateMobiles(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Duplicar">
+                      content_copy
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Header y botón de "Agregar" del Mantenedor de Móviles -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h1>Mantenedor de Móviles</h1>
+        <button mat-button class="actionButton" type="button" matTooltip="Agregar Móvil"
+          (click)="setMobiles()">
+          <mat-icon class="icon">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Funcionamientos -->
+      <div class="background-table table-two my-1">
+        <p-table class="table1" [columns]="colsMobiles" selectionMode="single"
+          [(selection)]="selectedTableTwo" [value]="mobilesDataSource"
+          styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRowTableTwo}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- ngClass: Para alinear, ver el TS y CSS -->
+                {{ col.field !== 'state' ?
+                rowData[col.field] : '' }}
+                <div *ngIf="col.field === 'state'"
+                  class="d-flex align-items-center justify-content-center">
+                  <mat-icon class="material-icons-outlined icon pt-1"
+                    [ngStyle]="{'cursor': 'default' }">
+                    {{ rowData[col.field] === true ? 'done' : 'close'}}
+                  </mat-icon>
+                </div>
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton" (click)="setMobiles(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Contenido del panel lateral -->
+    <mat-drawer #drawer class="drawer-sidecontent" mode="side" position="end">
+      <div class="content-right d-flex flex-column">
+        <!-- Panel de Grupos y Móviles -->
+        <div *ngIf="groupsMobilesPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">
+            {{ !editMode ? "Agregar Móvil al Grupo" : "Editar Grupo del Móvil" }}
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="crossroadCommuneFilter" class="form-label">Móvil</label>
+                  <ng-multiselect-dropdown name="mobilesFilter" [placeholder]="'Seleccione...'"
+                    [settings]="selectMobiles" [data]="mobilesDataSource"
+                    [(ngModel)]="mobileSelected">
+                  </ng-multiselect-dropdown>
+                </div>
+                <div class="col-6">
+                  <label for="crossroadCommuneFilter" class="form-label">Grupo</label>
+                  <ng-multiselect-dropdown name="groupsMobilesFilter"
+                    [placeholder]="'Seleccione...'" [settings]="selectGroups"
+                    [data]="groupsMobilesDataSource" [(ngModel)]="groupSelected">
+                  </ng-multiselect-dropdown>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="groupsMobilesDate">Fecha</label>
+                  <input type="date" class="form-control form-control-sm inputCustom"
+                    [formControl]="groupsMobilesDate" />
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">done</mat-icon>
+                Aceptar
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de Duplicación de Móviles -->
+        <div *ngIf="duplicateMobilesPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">
+            Duplicar Móviles por Grupo
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="groupsMobilesDate">Fecha Origen</label>
+                  <input type="date" class="form-control form-control-sm inputCustom"
+                    [formControl]="originMobilesDate" [attr.disabled]=true />
+                </div>
+                <div class="col-6">
+                  <label for="groupsMobilesDate">Copiar a Fecha</label>
+                  <input type="date" class="form-control form-control-sm inputCustom"
+                    [formControl]="duplicateMobilesDate" />
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">done</mat-icon>
+                Aceptar
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de Mantenedor de Móviles -->
+        <div *ngIf="mobilesPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">
+            {{editMode ? 'Editar Móvil' : 'Agregar Móvil'}}
+          </h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label for="code">Id Interno</label>
+                  <input type="text" class="form-control form-control-sm inputCustom"
+                    [formControl]="mobileId" />
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-8">
+                  <label for="code">Descripción</label>
+                  <input type="text" class="form-control form-control-sm inputCustom"
+                    [formControl]="mobileDescription" />
+                </div>
+                <div class="col-4 d-flex flex-column">
+                  <label for="code" style="margin-bottom: 3px; margin-top: 1px">Estado
+                    Activo</label>
+                  <mat-checkbox style="padding-left: 12px" [formControl]="mobileState">
+                  </mat-checkbox>
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1" />
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">done</mat-icon>
+                Aceptar
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-drawer>
+  </mat-drawer-container>
+</div>

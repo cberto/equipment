@@ -1,0 +1,199 @@
+<div class="d-flex h-100">
+
+  <mat-drawer-container class="drawer-content" autosize>
+
+    <!-- Contenido principal de la izquierda -->
+    <div class="content-left">
+
+      <!-- Header y botón de "Agregar" del listado de Regiones -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h1>Listado de Regiones</h1>
+        <button mat-button class="actionButton" type="button" (click)="setRegion()" matTooltip="Agregar nueva Región">
+          <mat-icon class="material-icons-outline icon">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Regiones -->
+      <div class="background-table my-1">
+        <p-table [columns]="colsRegions" [value]="regionsDataSource" styleClass="p-datatable-striped"
+          responsiveLayout="scroll" [(selection)]="selected" selectionMode="single">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted" [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRow}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- ngClass: Para alinear, ver el TS y CSS -->
+                {{ rowData[col.field] }}
+                <div *ngIf="col.field === 'actions'" class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton" (click)="getCommunes(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Ver Comunas">
+                      holiday_village
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="setRegion(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Header y botón de "Agregar" del listado de Comunas -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="middle gap-1">Comunas de la Región<span class="especification">{{regionNameSelected}}</span></h2>
+        <button mat-button class="actionButton" type="button" (click)="setCommune()" [disabled]="!searchCommunes"
+          matTooltip="Agregar nueva Comuna">
+          <mat-icon class="icon" [ngClass]="{'disabled' : !searchCommunes }">add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <!-- Tabla de Comunas -->
+      <div class="background-table table-two my-1">
+        <p-table class="table1" [columns]="colsCommunes" [value]="communesDataSource" styleClass="p-datatable-striped"
+          responsiveLayout="scroll" [(selection)]="selectedTableTwo" selectionMode="single">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted" [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr *ngIf="!searchCommunes">
+              <td class="align-center" colspan="4">Seleccione una Región</td>
+            </tr>
+            <tr *ngIf="!dataRowHasData">
+              <td class="align-center" colspan="4">No hay comunas asociadas a la Región.</td>
+            </tr>
+            <tr *ngIf="searchCommunes && dataRowHasData" class="under-sticky"
+              [ngClass]="{'p-highlight' : rowData === selectedRowTableTwo}">
+              <!-- ngClass: Para alinear, ver el TS y CSS -->
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- Contenido de la tabla. Si es campo regionName se adentra en el array de ese key, sino muestra el valor del key-->
+                {{ col.field === 'regionName' ? rowData[col.field][0].regionName : rowData[col.field] }}
+                <div *ngIf="col.field === 'actions'" class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton" (click)="setCommune(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="deleteExample(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Eliminar">delete
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+    </div>
+
+    <!-- Contenido del panel lateral -->
+    <mat-drawer #drawer class="drawer-sidecontent" mode="side" position="end">
+
+      <div class="content-right d-flex flex-column">
+
+        <!-- Panel de Región -->
+        <div *ngIf="regionPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">{{!editMode ? 'Nueva Región' : 'Editar Región' }}</h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label for="code">Código</label>
+                  <input type="number" class="form-control form-control-sm inputCustom"
+                    [formControl]="regionCode && code" placeholder="4">
+                </div>
+                <div class="col-8">
+                  <label for="name">Nombre</label>
+                  <input type="text" class="form-control form-control-sm inputCustom" [formControl]="regionName">
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1">
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="addRegion()">
+                <mat-icon class="material-icons-outline icon">{{!editMode ? 'add' : 'done' }}
+                </mat-icon>
+                {{!editMode ? 'Agregar' : 'Aceptar' }}
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de Comuna -->
+        <div *ngIf="communePanel" class="box-shadow box-margin">
+          <h2 class="mx-0 middle gap-1">
+            {{!editMode ? 'Nueva Comuna en Región' : 'Editar Comuna' }}<span *ngIf="searchCommunes"
+              class="especification">{{regionNameSelected}}</span></h2>
+          <div>
+            <!-- Formulario -->
+            <form action="">
+              <div class="row g-2">
+                <div class="col-4">
+                  <label for="code">Código</label>
+                  <input type="number" class="form-control form-control-sm inputCustom"
+                    [formControl]="communeCode && code" placeholder="7">
+                </div>
+                <div class="col-8">
+                  <label for="name">Nombre</label>
+                  <input type="text" class="form-control form-control-sm inputCustom" [formControl]="communeName">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-8">
+                  <label for="region">Región</label>
+                  <ng-multiselect-dropdown name="regionName" [placeholder]="'Seleccione...'"
+                    [settings]="selectWithoutFilter" [data]="regionsDataSource" [(ngModel)]="regionSelected"
+                    [disabled]="true">
+                  </ng-multiselect-dropdown>
+                </div>
+              </div>
+            </form>
+            <hr class="mt-2 mb-1">
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-end mb-2">
+              <button mat-button class="actionButton" type="button" (click)="addCommune()">
+                <mat-icon class="material-icons-outline icon">{{!editMode ? 'add' : 'done' }}
+                </mat-icon>
+                {{!editMode ? 'Agregar' : 'Aceptar' }}
+              </button>
+              <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+                <mat-icon class="material-icons-outline icon">close</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </mat-drawer>
+
+  </mat-drawer-container>
+
+
+</div>

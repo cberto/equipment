@@ -1,0 +1,594 @@
+<div class="d-flex h-100">
+  <mat-drawer-container class="drawer-content" autosize>
+
+    <!-- Contenido principal de la izquierda -->
+    <div class="content-left">
+
+      <div class="w-100 d-flex justify-content-between align-items-center">
+        <h1>Listado de Cruces</h1>
+        <div class="d-flex gap-1">
+
+          <button *ngIf="!openedFiltersMenu; else filtersMenu" class="actionButton" mat-button
+            (click)="handleFiltersMenu()" matTooltip="Filtrar Cruces">
+            <mat-icon class="icon">filter_alt</mat-icon>
+            Filtrar
+          </button>
+          <button mat-icon-button class="iconButton" (click)="handleCrossroadList()">
+            <mat-icon class="material-icons-outlined icon"
+              [matTooltip]="expandCrossroadList ? 'Contraer' : 'Expandir'">
+              {{
+              expandCrossroadList ? "expand_less" : "expand_more"
+              }}</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <ng-template #filtersMenu>
+        <div class="d-flex flex-column filters-menu">
+          <form class="w-100">
+            <div class="row g-2">
+              <div class="col-2">
+                <label for="crossroadCodeFilter" class="form-label">Código</label>
+                <input matInput type="number" class="form-control form-control-sm inputCustom"
+                  autocomplete="disabled" />
+              </div>
+              <div class="col-5">
+                <label for="crossroadStreetFilter" class="form-label">Calle</label>
+                <input type="text" class="form-control form-control-sm inputCustom"
+                  id="crossroadStreetFilter" autocomplete="off" />
+              </div>
+              <div class="col-5">
+                <label for="crossroadCommuneFilter" class="form-label">Comuna</label>
+                <ng-multiselect-dropdown name="regionName" [placeholder]="'Seleccione...'"
+                  [settings]="selectWithoutFilter" [data]="communeDataSource"
+                  [(ngModel)]="communeSelectedCrossroad">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+          </form>
+          <div class="d-flex align-items-center justify-content-end mt-2 gap-1">
+            <button mat-button class="actionButton me-2">
+              <mat-icon class="icon">search</mat-icon>
+              Buscar
+            </button>
+            <button mat-button class="actionButton">
+              <mat-icon class="icon">refresh</mat-icon>
+              Limpiar
+            </button>
+            <button mat-button class="actionButton" (click)="handleFiltersMenu()">
+              <mat-icon class="icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Tabla de Cruces -->
+      <div *ngIf="expandCrossroadList; else divider" class="background-table my-1 p-0">
+        <p-table [columns]="colsCrossroads" selectionMode="single" [(selection)]="selected"
+          [value]="crossroadsDataSource" styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [ngClass]="{ 'text-start': col.align === 'align-default' }"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="under-sticky" [ngClass]="{'p-highlight' : rowData === selectedRow}">
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- ngClass: Para alinear, ver el TS y CSS -->
+                {{ rowData[col.field] }}
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton" (click)="
+                  getTasksInExecution(rowData)">
+                    <mat-icon class="material-icons-outlined icon"
+                      matTooltip="Ver tareas en ejecución">
+                      visibility
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton" (click)="executionTasks(rowData)">
+                    <mat-icon class="material-icons-outlined icon"
+                      matTooltip="Ver equipos del cruce">preview
+                    </mat-icon>
+                  </button>
+
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Header y botón de "Agregar" Tareeas en ejecucion -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="middle">Tareas en Ejecución del Cruce<span
+            class="especification">{{crossroadSelected}}</span>
+        </h2>
+        <div class="d-flex align-items-center gap-1">
+          <label style="color: #232c4e !important"> Tareas asociadas al cruce </label>
+          <mat-slide-toggle [(ngModel)]="isCheckedTasksInExecution"
+            [disabled]="!searchTasksInExecution" [checked]="true">
+          </mat-slide-toggle>
+          <button mat-button class="actionButton" type="button" [disabled]="!searchTasksInExecution"
+            matTooltip="Agregar Tareas al Cruce" (click)="setTasksInExecution()">
+            <mat-icon class="icon" [ngClass]="{ disabled: !searchTasksInExecution }">add</mat-icon>
+            Agregar
+          </button>
+
+          <button mat-icon-button class="iconButton" (click)="handleTasksInExecution()">
+            <mat-icon class="material-icons-outlined icon"
+              [matTooltip]="expandTasksInExecution ? 'Contraer' : 'Expandir'">
+              {{
+              expandTasksInExecution ? "expand_less" : "expand_more"
+              }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      <!-- Tabla de Tareas en Ejecución -->
+      <div *ngIf="expandTasksInExecution; else divider" class="background-table table-two my-1 p-0">
+        <p-table class="table1" [columns]="colsTasksInExecution" selectionMode="single"
+          [(selection)]="selectedTableTwo" [value]="tasksInExecutionDataSource"
+          styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr *ngIf="!searchTasksInExecution">
+              <td class="align-center" colspan="6">Seleccione un Cruce</td>
+            </tr>
+            <tr *ngIf="!dataRowHasData">
+              <td class="align-center" colspan="6">
+                No hay Tareas en ejecución asociadas al Cruce
+              </td>
+            </tr>
+            <tr *ngIf="searchTasksInExecution && dataRowHasData" class="under-sticky"
+              [ngClass]="{'p-highlight' : rowData === selectedRowTableTwo}">
+              <!-- ngClass: Para alinear, ver el TS y CSS -->
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                {{
+                col.field === "tasksInExecutionStart" || col.field === "tasksInExecutionEnd"
+                ? (rowData[col.field] | dateConversion)
+                : rowData[col.field]
+                }}
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton"
+                    (click)="getAssociatedAttentions(rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Ver Atenciones">
+                      report_problem
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+
+
+
+
+      <!-- Header y botón de "Agregar" del listado de Atencionees asociadas a la tarea -->
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 class="middle">Atenciones Asociadas a la Tarea<span *ngIf="searchAssociatedAttentions"
+            class="especification">{{taskSelected}}</span></h2>
+        <div class="d-flex align-items-center gap-1">
+
+          <button mat-button class="actionButton" type="button"
+            [disabled]="!searchAssociatedAttentions" matTooltip="Agregar Atención a la Tarea"
+            (click)="setAssociatedAttentions()">
+            <mat-icon class="icon">add</mat-icon>
+            Agregar
+          </button>
+          <button mat-icon-button class="iconButton" (click)="handleAssociatedAttentions()">
+            <mat-icon class="material-icons-outlined icon"
+              [matTooltip]="expandAssociatedAttentions ? 'Contraer' : 'Expandir'">
+              {{
+              expandAssociatedAttentions ? "expand_less" : "expand_more"
+              }}</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div *ngIf="expandAssociatedAttentions; else divider"
+        class="background-table table-three my-1 p-0">
+
+        <p-table class="table2" [columns]="colsAssociatedAttentions" selectionMode="single"
+          [(selection)]="selectedRowTwo" [value]="associatedAttentionsDataSource"
+          styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header" let-columns>
+            <tr class="ng-star-inserted sticky-header">
+              <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+              <th *ngFor="let col of columns" class="ng-star-inserted"
+                [pSortableColumn]="col.sort ? col.field : null">
+                {{ col.header }}
+                <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr *ngIf="!searchAssociatedAttentions">
+              <td class="align-center" colspan="6">
+                Seleccione una Tarea en ejecución
+              </td>
+            </tr>
+            <tr *ngIf="!dataRowHasData">
+              <td class="align-center" colspan="4">
+                No hay ninguna atención asociados al las tareas
+              </td>
+            </tr>
+            <tr *ngIf="searchAssociatedAttentions && dataRowHasData" class="under-sticky"
+              [ngClass]="{'p-highlight' : rowData === selectedRowTableThree}">
+              <!-- ngClass: Para alinear, ver el TS y CSS -->
+              <td *ngFor="let col of columns" [ngClass]="col.align">
+                <!-- Contenido de la tabla. Si es campo regionName se adentra en el array de ese key, sino muestra el valor del key-->
+                {{
+                col.field !== "associatedAttentionsState"
+                ? rowData[col.field]
+                : null
+                }}
+                <div *ngIf="
+                  col.field === 'associatedAttentionsState' &&
+                  rowData[col.field] === true
+                ">
+                  <mat-icon class="material-icons-outlined icon">done</mat-icon>
+                </div>
+                <div *ngIf="
+                  col.field === 'associatedAttentionsState' &&
+                  rowData[col.field] === false
+                ">
+                  <mat-icon class="material-icons-outlined icon">close</mat-icon>
+                </div>
+                <div *ngIf="col.field === 'actions'"
+                  class="d-flex align-items-center justify-content-center">
+                  <button mat-icon-button class="iconButton">
+                    <mat-icon class="material-icons-outlined icon"
+                      (click)="associatedAttentions(rowData)" matTooltip="Terminar Atención">
+                      report_off
+                    </mat-icon>
+                  </button>
+                  <button mat-icon-button class="iconButton"
+                    (click)="setAssociatedAttentions(true, rowData)">
+                    <mat-icon class="material-icons-outlined icon" matTooltip="Editar">edit
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+      </div>
+      <div class="extra-margin" style="height: 40px"></div>
+
+      <ng-template #divider>
+        <hr class="my-0" />
+      </ng-template>
+
+
+
+    </div>
+
+    <mat-drawer #drawer class="drawer-sidecontent" mode="side" position="end">
+
+
+      <div class="content-right d-flex flex-column">
+        <!-- Panel lateral  Listado de cruces -->
+
+        <div *ngIf="executionTasksPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">Equipos del Cruce</h2>
+
+          <div class="background-table my-1">
+            <p-table [columns]="colCrossroadEquipment" selectionMode="single"
+              [(selection)]="selectedCrossroadEquipment" [value]="listCrossroadEquipmentDataSource"
+              styleClass="p-datatable-striped" responsiveLayout="scroll">
+              <ng-template pTemplate="header" let-columns>
+                <tr class="ng-star-inserted sticky-header">
+                  <!-- Si quiero el sort en columnas específicas lo dejo como está en pSortable.. sino solo dejo col.field para que tome todas las columnas -->
+                  <th *ngFor="let col of columns" class="ng-star-inserted"
+                    [pSortableColumn]="col.sort ? col.field : null">
+                    {{ col.header }}
+                    <!-- Si quiero el sort en todas quito el ngIf, sino será específico a las indicadas en el TS ( ver onInit, cols, sort ) -->
+                    <p-sortIcon [field]="col.field" *ngIf="col.sort"></p-sortIcon>
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-rowData let-columns="columns">
+                <tr class="under-sticky" [pSelectableRow]="rowData">
+                  <td *ngFor="let col of columns" [ngClass]="col.align">
+                    <!-- ngClass: Para alinear, ver el TS y CSS -->
+                    {{rowData[col.field]}}
+
+
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
+
+
+
+          <hr class="mt-2 mb-1" />
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-end mb-2">
+            <button mat-button class="actionButton" type="button">
+              <mat-icon class="material-icons-outline icon">done</mat-icon>
+              Aceptar
+            </button>
+            <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+              <mat-icon class="material-icons-outline icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+
+
+        <!-- PAnel lateral de Tareas en ejecucion -->
+        <div *ngIf="setTasksInExecutionPanel" class="box-shadow box-margin">
+          <h2 class="mx-0 middle gap-1">Nueva Tarea del Cruce<span class="especification"
+              *ngIf="searchTasksInExecution">{{crossroadSelected}}</span></h2>
+          <form action="">
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="equipmentTypeSelect" class="form-label">Equipos</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectEquipmentTypes" [data]="equipmentTypesDataSource"
+                  [(ngModel)]="equipmentTypeSelected">
+                </ng-multiselect-dropdown>
+              </div>
+              <div class="col-6">
+                <label for="BehaviourSelect" class="form-label">Funcionamiento</label>
+                <ng-multiselect-dropdown name="BehaviourSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectBehaviour" [data]="behaviourDataSource"
+                  [(ngModel)]="behaviourSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="ApplicantSelect" class="form-label">Solicitante</label>
+                <ng-multiselect-dropdown name="ApplicantSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectApplicant" [data]="applicantDataSource"
+                  [(ngModel)]="applicantSelected">
+                </ng-multiselect-dropdown>
+              </div>
+              <div class="col-6">
+                <!-- [disabled]="!searchTasksInExecution"
+                [ngClass]="{ disabled: !searchTasksInExecution }"-->
+                <label for="ResponsableSelect" class="form-label">Responsable</label>
+                <ng-multiselect-dropdown name="ResponsableSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectResponsable" [data]="responsableDataSource"
+                  [(ngModel)]="responsableSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="equipmentContractSelect" class="form-label">Grupo Ejecutante</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectEquipmentContract" [data]="equipmentContractDataSource"
+                  [(ngModel)]="equipmentContractSelected">
+                </ng-multiselect-dropdown>
+              </div>
+              <div class="col-6">
+                <label for="technicalSelect" class="form-label">Técnico</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectTechnical" [data]="technicalDataSource"
+                  [(ngModel)]="technicalSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="name">Observaciones</label>
+                <input type="text" class="form-control form-control-sm inputCustom"
+                  [formControl]="observations" />
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-5">
+                <label for="start">Inicio</label>
+                <input type="date" class="form-control form-control-sm inputCustom"
+                  [formControl]="tasksInExecutionStart" />
+              </div>
+              <div class="col-5">
+                <label for="end">Fin</label>
+                <input type="date" class="form-control form-control-sm inputCustom"
+                  [formControl]="tasksInExecutionEnd" />
+              </div>
+            </div>
+          </form>
+          <hr class="mt-2 mb-1" />
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-end mb-2">
+            <button mat-button class="actionButton" type="button"
+              (click)="addSetTasksInExecution()">
+              <mat-icon class="material-icons-outline icon">add</mat-icon>
+              Agregar
+            </button>
+            <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+              <mat-icon class="material-icons-outline icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+
+
+
+        <!-- Atenciones asociadas a la tarea -->
+
+        <div *ngIf="attentionsAssociatedPanel" class="box-shadow box-margin">
+          <h2 class="mx-0 middle gap-1">
+            {{ !editMode ? "Nueva Atención de Tarea" : "Editar Atención" }}
+            <span *ngIf="searchAssociatedAttentions" class="especification">{{taskSelected}}</span>
+          </h2>
+
+          <form action="">
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="equipmentTypeSelect" class="form-label">Equipos</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectEquipmentTypes" [data]="equipmentTypesDataSource"
+                  [(ngModel)]="equipmentTypeSelected">
+                </ng-multiselect-dropdown>
+              </div>
+
+              <div class="col-6">
+                <label for="BehaviourSelect" class="form-label">Funcionamiento</label>
+                <ng-multiselect-dropdown name="BehaviourSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectBehaviour" [data]="behaviourDataSource"
+                  [(ngModel)]="behaviourSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="equipmentContractSelect" class="form-label">Grupo Ejecutante</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectEquipmentContract" [data]="equipmentContractDataSource"
+                  [(ngModel)]="equipmentContractSelected">
+                </ng-multiselect-dropdown>
+              </div>
+              <div class="col-6">
+                <label for="technicalSelect" class="form-label">Técnico</label>
+                <ng-multiselect-dropdown name="equipmentTypeSelect" [placeholder]="'Seleccione...'"
+                  [settings]="selectTechnical" [data]="technicalDataSource"
+                  [(ngModel)]="technicalSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="code">Observaciones</label>
+              <input type="text" class="form-control form-control-sm inputCustom"
+                [formControl]="observations" />
+            </div>
+
+          </form>
+          <hr class="mt-2 mb-1" />
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-end mb-2">
+            <button mat-button class="actionButton" type="button"
+              (click)="addAttentionsAssociated()">
+              <mat-icon class="material-icons-outline icon">{{
+                !editMode ? "add" : "done"
+                }}</mat-icon>
+              {{ !editMode ? "Agregar" : "Aceptar" }}
+            </button>
+            <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+              <mat-icon class="material-icons-outline icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+
+        <!-- Atenciones  -->
+
+        <div *ngIf="associatedAttentionsPanel" class="box-shadow box-margin">
+          <h2 class="mx-0">Terminar Atención</h2>
+          <form action="">
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="start">Fecha Llegada</label>
+                <input type="date" class="form-control form-control-sm inputCustom"
+                  [formControl]="equipmentStart" />
+              </div>
+              <div class="col-5">
+                <label for="crossroadCode" class="form-label">Hora Llegada</label>
+                <input type="time" class="form-control form-control-sm inputCustom" id="appt"
+                  name="appt" min="09:00" max="18:00" required formControlName="initHour" />
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="functionArrivalSelect" class="form-label">Func. Llegada</label>
+                <ng-multiselect-dropdown name="functionArrivalSelected"
+                  [placeholder]="'Seleccione...'" [settings]="functionArrivalSelect"
+                  [data]="functionArrivalDataSource" [(ngModel)]="functionArrivalSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+
+            <div class="row g-2">
+
+              <div class="col-6">
+                <label for="end">Fecha Término</label>
+                <input type="date" class="form-control form-control-sm inputCustom"
+                  [formControl]="equipmentEnd" />
+              </div>
+              <div class="col-5">
+                <label for="crossroadCode" class="form-label">Hora Término</label>
+                <input type="time" class="form-control form-control-sm inputCustom" id="appt"
+                  name="appt" min="09:00" max="18:00" required formControlName="endHour" />
+              </div>
+            </div>
+            <div class="row g-2">
+
+              <div class="col-6">
+                <label for="functionFinishedSelect" class="form-label">Func.
+                  Término</label>
+                <ng-multiselect-dropdown name="functionFinishedSelected"
+                  [placeholder]="'Seleccione...'" [settings]="functionFinishedSelect"
+                  [data]="functionFinishedDataSource" [(ngModel)]="functionFinishedSelected">
+                </ng-multiselect-dropdown>
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="code">Observaciones</label>
+                <input type="text" class="form-control form-control-sm inputCustom"
+                  [formControl]="observations" />
+              </div>
+            </div>
+          </form>
+          <hr class="mt-2 mb-1" />
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-end mb-2">
+            <button mat-button class="actionButton" type="button">
+              <mat-icon class="material-icons-outline icon">done</mat-icon>
+              Terminar
+            </button>
+            <button mat-button class="actionButton" type="button" (click)="closeDrawer()">
+              <mat-icon class="material-icons-outline icon">close</mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+
+
+      </div>
+
+
+    </mat-drawer>
+  </mat-drawer-container>
+
+</div>

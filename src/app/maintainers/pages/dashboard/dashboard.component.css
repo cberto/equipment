@@ -1,0 +1,18 @@
+@import url('../../styles/comunStyles');
+
+.filters-menu {
+  position: absolute;
+  right: 15px;
+  top: 56px;
+  /*right: 6px; para listado de cruces
+  top: 6px;*/
+  z-index: 1000;
+  background-color: #fbfcfc;
+  border-radius: 10px;
+  margin: 0;
+  box-shadow: -1px 2px 5px 1px rgb(60 57 62 / 33%);
+  padding: 0.5rem 0.8rem !important;
+  width: 460px;
+  height: 96px;
+}
+

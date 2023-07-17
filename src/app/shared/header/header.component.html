@@ -1,0 +1,31 @@
+<mat-toolbar class="navbar" style="padding-left: 2px;">
+
+  <span class="example-spacer"></span>
+  <button mat-icon-button class="ms-5">
+    <mat-icon class="icon-white">
+      map
+    </mat-icon>
+  </button>
+  <button mat-icon-button class="">
+    <mat-icon class="icon-white">chat</mat-icon>
+  </button>
+  <button mat-button [matMenuTriggerFor]="menu" class="adminButton">
+    <mat-icon class="icon-white">person</mat-icon>
+    <span class="text">{{userData.username}}</span>
+  </button>
+  <mat-menu #menu="matMenu" class="crossroadMenu" [overlapTrigger]="false">
+    <div class="d-flex flex-column align-items-center">
+      <h1 class="username mx-3 text-center">{{userData.username}}</h1>
+      <h5 class="userRol mx-3 text-center">{{userData.rol}}</h5>
+    </div>
+    <hr class="m-2 mt-1" />
+    <button mat-menu-item>
+      <mat-icon class="adminIcon">edit</mat-icon>
+      <span class="adminMenuText">Editar perfil</span>
+    </button>
+    <button mat-menu-item>
+      <mat-icon class="adminIcon">logout</mat-icon>
+      <span class="adminMenuText">Cerrar sesión</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>

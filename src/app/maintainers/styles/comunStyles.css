@@ -1,0 +1,95 @@
+/* Encabezados */
+h1 {
+  color: #142052;
+  font-weight: lighter;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  margin-bottom: 0;
+}
+
+/* Subtitulos */
+h2 {
+  font-family: 'Open Sans';
+  font-size: 0.9rem;
+  color: #142052;
+  margin: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Alineación central */
+.middle {
+  display: flex;
+  /* justify-content: center; */
+  align-content: center;
+}
+
+/* Especificaciones en Títulos */
+.especification {
+  color: #6c757d!important;
+  font-size: smaller;
+  padding: 0 !important;
+  padding-top: 2px !important;
+}
+
+/* Labels */
+label {
+  margin: 0;
+  font-family: 'Open Sans';
+  font-size: 11px;
+  font-weight: bold;
+  color: #4d4d4d;
+}
+
+.box-shadow {
+  background-color: #fbfcfc;
+  border-radius: 10px;
+  margin: 0;
+  box-shadow: 0px 0px 4px 2px rgb(64 60 67 / 16%);
+  padding: 0.2rem 0.9rem 0.4rem 0.9rem;
+}
+
+.inputCustom {
+  border: none;
+  box-shadow: 0px 0px 7px 1px rgb(64 60 67 / 16%);
+  height: 28px !important;
+  min-height: 28px !important;
+  color: grey;
+  font-family: 'Open Sans';
+  font-size: 12px;
+}
+
+/* Botones */
+
+.actionButton {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-family: 'Open Sans';
+  font-weight: bold;
+  color: #2b3043;
+  width: min-content;
+  height: 23px;
+  padding-left: 0;
+  padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Iconos */
+.icon {
+  color: #666666;
+  font-size: 18px !important;
+  cursor: pointer;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 23px;
+  width: 23px;
+}
+
+::ng-deep p-sorticon {
+  padding: 0 !important;
+}
